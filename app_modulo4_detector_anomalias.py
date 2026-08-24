@@ -182,3 +182,86 @@ with tab3:
         st.pyplot(fig3)
     else:
         st.caption("Ajusta los parámetros y presiona **Ejecutar benchmark** para ver el resultado.")
+
+# =====================================================
+# Ejercicio final del módulo 4
+# Agregar una tercera condición: NOT(es_fin_de_semana)
+# =====================================================
+
+st.markdown("---")
+st.subheader("📝 Ejercicio final: tercera condición lógica")
+
+st.write(
+    "Ahora la alarma se activa si la temperatura es mayor a 30°C, "
+    "la humedad es menor a 40% y además **no es fin de semana**."
+)
+
+# Función usando un loop (Python)
+def alarma_loop_ejercicio(temperaturas, humedades, es_fin_de_semana):
+    resultados = []
+
+    for temp, hum, fin_semana in zip(temperaturas, humedades, es_fin_de_semana):
+        alarma = temp > 30 and hum < 40 and not fin_semana
+        resultados.append(alarma)
+
+    return np.array(resultados)
+
+
+# Función usando NumPy (vectorizada)
+def alarma_numpy_ejercicio(temperaturas, humedades, es_fin_de_semana):
+    return (temperaturas > 30) & (humedades < 40) & (~es_fin_de_semana)
+
+
+if st.button("Probar ejercicio con 1,000,000 de datos"):
+
+    n = 1_000_000
+    rng = np.random.default_rng(42)
+
+    temperaturas = rng.uniform(15, 40, n)
+    humedades = rng.uniform(20, 80, n)
+    es_fin_de_semana = rng.choice([True, False], size=n)
+
+    # Tiempo con loop
+    inicio = time.perf_counter()
+    resultado_loop = alarma_loop_ejercicio(
+        temperaturas,
+        humedades,
+        es_fin_de_semana
+    )
+    tiempo_loop = time.perf_counter() - inicio
+
+    # Tiempo con NumPy
+    inicio = time.perf_counter()
+    resultado_numpy = alarma_numpy_ejercicio(
+        temperaturas,
+        humedades,
+        es_fin_de_semana
+    )
+    tiempo_numpy = time.perf_counter() - inicio
+
+    st.write("**Resultados del ejercicio**")
+
+    col1, col2 = st.columns(2)
+    col1.metric("Tiempo Loop", f"{tiempo_loop:.4f} s")
+    col2.metric("Tiempo NumPy", f"{tiempo_numpy:.4f} s")
+
+    st.write("¿Los dos métodos dan el mismo resultado?")
+    st.write(np.array_equal(resultado_loop, resultado_numpy))
+
+    st.write(f"NumPy fue aproximadamente **{tiempo_loop/tiempo_numpy:.1f} veces más rápido**.")
+
+    st.markdown("### Respuesta del ejercicio")
+
+    st.write(
+        """
+        **¿Cambia la complejidad Big-O?**
+
+        No. La complejidad sigue siendo **O(n)** porque el algoritmo sigue recorriendo
+        todas las lecturas una sola vez. Solo se agregó una condición más en cada elemento.
+
+        **¿Se mantiene la ventaja de NumPy?**
+
+        Sí. NumPy sigue siendo mucho más rápido porque realiza las operaciones sobre
+        todo el arreglo al mismo tiempo, sin usar un loop de Python.
+        """
+    )
